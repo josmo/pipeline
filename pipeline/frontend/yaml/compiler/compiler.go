@@ -98,7 +98,7 @@ func (c *Compiler) Compile(conf *yaml.Config) *backend.Config {
 		config.Stages = append(config.Stages, stage)
 	} else if c.local == false {
 		for i, container := range conf.Clone.Containers {
-			if !container.Constraints.Match(c.metadata) {
+			if !container.Constraints.Match(c.metadata, c.local) {
 				continue
 			}
 			stage := new(backend.Stage)
@@ -136,12 +136,7 @@ func (c *Compiler) Compile(conf *yaml.Config) *backend.Config {
 	var stage *backend.Stage
 	var group string
 	for i, container := range conf.Pipeline.Containers {
-		//Skip if local and should not run local
-		if c.local && !container.Constraints.Local.Bool() {
-			continue
-		}
-
-		if !container.Constraints.Match(c.metadata) {
+		if !container.Constraints.Match(c.metadata, c.local) {
 			continue
 		}
 

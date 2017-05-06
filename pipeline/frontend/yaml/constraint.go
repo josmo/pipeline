@@ -5,7 +5,6 @@ import (
 
 	"github.com/cncd/pipeline/pipeline/frontend"
 	libcompose "github.com/docker/libcompose/yaml"
-	"github.com/cncd/pipeline/pipeline/frontend/yaml/types"
 )
 
 type (
@@ -19,7 +18,7 @@ type (
 		Branch      Constraint
 		Status      Constraint
 		Matrix      ConstraintMap
-		Local       types.BoolTrue
+		User_agent  Constraint
 	}
 
 	// Constraint defines a runtime constraint.
@@ -37,13 +36,18 @@ type (
 
 // Match returns true if all constraints match the given input. If a single
 // constraint fails a false value is returned.
-func (c *Constraints) Match(metadata frontend.Metadata) bool {
+func (c *Constraints) Match(metadata frontend.Metadata, local bool) bool {
+	location := "server"
+	if local {
+		location = "local"
+	}
 	return c.Platform.Match(metadata.Sys.Arch) &&
 		c.Environment.Match(metadata.Curr.Target) &&
 		c.Event.Match(metadata.Curr.Event) &&
 		c.Branch.Match(metadata.Curr.Commit.Branch) &&
 		c.Repo.Match(metadata.Repo.Name) &&
-		c.Matrix.Match(metadata.Job.Matrix)
+		c.Matrix.Match(metadata.Job.Matrix) &&
+	        c.User_agent.Match(location)
 }
 
 // Match returns true if the string matches the include patterns and does not
