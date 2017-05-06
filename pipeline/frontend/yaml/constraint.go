@@ -36,18 +36,14 @@ type (
 
 // Match returns true if all constraints match the given input. If a single
 // constraint fails a false value is returned.
-func (c *Constraints) Match(metadata frontend.Metadata, local bool) bool {
-	location := "server"
-	if local {
-		location = "local"
-	}
+func (c *Constraints) Match(metadata frontend.Metadata) bool {
 	return c.Platform.Match(metadata.Sys.Arch) &&
 		c.Environment.Match(metadata.Curr.Target) &&
 		c.Event.Match(metadata.Curr.Event) &&
 		c.Branch.Match(metadata.Curr.Commit.Branch) &&
 		c.Repo.Match(metadata.Repo.Name) &&
 		c.Matrix.Match(metadata.Job.Matrix) &&
-	        c.UserAgent.Match(location)
+	        c.UserAgent.Match(metadata.Sys.UserAgent)
 }
 
 // Match returns true if the string matches the include patterns and does not

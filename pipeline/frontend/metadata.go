@@ -83,11 +83,12 @@ type (
 
 	// System defines runtime metadata for a ci/cd system.
 	System struct {
-		Name    string `json:"name,omitempty"`
-		Host    string `json:"host,omitempty"`
-		Link    string `json:"link,omitempty"`
-		Arch    string `json:"arch,omitempty"`
-		Version string `json:"version,omitempty"`
+		Name      string `json:"name,omitempty"`
+		Host      string `json:"host,omitempty"`
+		Link      string `json:"link,omitempty"`
+		Arch      string `json:"arch,omitempty"`
+		Version   string `json:"version,omitempty"`
+		UserAgent string `json:"user_agent:omitempty"`
 	}
 )
 

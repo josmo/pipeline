@@ -57,6 +57,10 @@ func New(opts ...Option) *Compiler {
 // Compile compiles the YAML configuration to the pipeline intermediate
 // representation configuration format.
 func (c *Compiler) Compile(conf *yaml.Config) *backend.Config {
+	c.metadata.Sys.UserAgent = "server"
+	if c.local {
+		c.metadata.Sys.UserAgent = "local"
+	}
 	config := new(backend.Config)
 
 	// create a default volume
@@ -98,7 +102,7 @@ func (c *Compiler) Compile(conf *yaml.Config) *backend.Config {
 		config.Stages = append(config.Stages, stage)
 	} else if c.local == false {
 		for i, container := range conf.Clone.Containers {
-			if !container.Constraints.Match(c.metadata, c.local) {
+			if !container.Constraints.Match(c.metadata) {
 				continue
 			}
 			stage := new(backend.Stage)
@@ -136,7 +140,7 @@ func (c *Compiler) Compile(conf *yaml.Config) *backend.Config {
 	var stage *backend.Stage
 	var group string
 	for i, container := range conf.Pipeline.Containers {
-		if !container.Constraints.Match(c.metadata, c.local) {
+		if !container.Constraints.Match(c.metadata) {
 			continue
 		}
 

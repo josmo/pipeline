@@ -322,10 +322,30 @@ func TestConstraints(t *testing.T) {
 			with: frontend.Metadata{Sys: frontend.System{Arch: "windows/amd64"}},
 			want: false,
 		},
+		{
+			conf: "{ user_agent: [ local ] }",
+			with: frontend.Metadata{Sys: frontend.System{UserAgent: "local"}},
+			want: true,
+		},
+		{
+			conf: "{ user_agent: [ local ] }",
+			with: frontend.Metadata{Sys: frontend.System{UserAgent: "server"}},
+			want: false,
+		},
+		{
+			conf: "{ user_agent: [ server ] }",
+			with: frontend.Metadata{Sys: frontend.System{UserAgent: "server"}},
+			want: true,
+		},
+		{
+			conf: "{ user_agent: [ server ] }",
+			with: frontend.Metadata{Sys: frontend.System{UserAgent: "local"}},
+			want: false,
+		},
 	}
 	for _, test := range testdata {
 		c := parseConstraints(test.conf)
-		got, want := c.Match(test.with, false), test.want
+		got, want := c.Match(test.with), test.want
 		if got != want {
 			t.Errorf("Expect %+v matches %q is %v", test.with, test.conf, want)
 		}
