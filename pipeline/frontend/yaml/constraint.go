@@ -18,7 +18,7 @@ type (
 		Branch      Constraint
 		Status      Constraint
 		Matrix      ConstraintMap
-		UserAgent Constraint `yaml:"user_agent"`
+		UserAgent   Constraint `yaml:"user_agent"`
 	}
 
 	// Constraint defines a runtime constraint.
@@ -43,7 +43,7 @@ func (c *Constraints) Match(metadata frontend.Metadata) bool {
 		c.Branch.Match(metadata.Curr.Commit.Branch) &&
 		c.Repo.Match(metadata.Repo.Name) &&
 		c.Matrix.Match(metadata.Job.Matrix) &&
-	        c.UserAgent.Match(metadata.Sys.UserAgent)
+		c.UserAgent.Match(metadata.Sys.UserAgent)
 }
 
 // Match returns true if the string matches the include patterns and does not
