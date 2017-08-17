@@ -47,6 +47,41 @@ var compileCommand = cli.Command{
 			Name: "local",
 		},
 		//
+		// volume caching
+		//
+		cli.BoolFlag{
+			Name:   "volume-cache",
+			EnvVar: "CI_VOLUME_CACHE",
+		},
+		cli.StringFlag{
+			Name:   "volume-cache-base",
+			Value:  "/var/lib/drone",
+			EnvVar: "CI_VOLUME_CACHE_BASE",
+		},
+		//
+		// s3 caching
+		//
+		cli.BoolFlag{
+			Name:   "aws-cache",
+			EnvVar: "CI_AWS_CACHE",
+		},
+		cli.StringFlag{
+			Name:   "aws-region",
+			EnvVar: "AWS_REGION",
+		},
+		cli.StringFlag{
+			Name:   "aws-bucket",
+			EnvVar: "AWS_BUCKET",
+		},
+		cli.StringFlag{
+			Name:   "aws-access-key-id",
+			EnvVar: "AWS_ACCESS_KEY_ID",
+		},
+		cli.StringFlag{
+			Name:   "aws-secret-access-key",
+			EnvVar: "AWS_SECRET_ACCESS_KEY",
+		},
+		//
 		// registry credentials
 		//
 		cli.StringFlag{
@@ -86,6 +121,33 @@ var compileCommand = cli.Command{
 		cli.StringFlag{
 			Name:   "netrc-machine",
 			EnvVar: "CI_NETRC_MACHINE",
+		},
+		//
+		// resource limit parameters
+		//
+		cli.Int64Flag{
+			Name:   "limit-mem-swap",
+			EnvVar: "CI_LIMIT_MEM_SWAP",
+		},
+		cli.Int64Flag{
+			Name:   "limit-mem",
+			EnvVar: "CI_LIMIT_MEM",
+		},
+		cli.Int64Flag{
+			Name:   "limit-shm-size",
+			EnvVar: "CI_LIMIT_SHM_SIZE",
+		},
+		cli.Int64Flag{
+			Name:   "limit-cpu-quota",
+			EnvVar: "CI_LIMIT_CPU_QUOTA",
+		},
+		cli.Int64Flag{
+			Name:   "limit-cpu-shares",
+			EnvVar: "CI_LIMIT_CPU_SHARES",
+		},
+		cli.StringFlag{
+			Name:   "limit-cpu-set",
+			EnvVar: "CI_LIMIT_CPU_SET",
 		},
 		//
 		// metadata parameters
@@ -296,6 +358,14 @@ func compileAction(c *cli.Context) (err error) {
 
 	// compiles the yaml file
 	compiled := compiler.New(
+		compiler.WithResourceLimit(
+			c.Int64("limit-mem-swap"),
+			c.Int64("limit-mem"),
+			c.Int64("limit-shm-size"),
+			c.Int64("limit-cpu-quota"),
+			c.Int64("limit-cpu-shares"),
+			c.String("limit-cpu-set"),
+		),
 		compiler.WithRegistry(
 			compiler.Registry{
 				Hostname: c.String("registry-hostname"),
@@ -326,6 +396,21 @@ func compileAction(c *cli.Context) (err error) {
 		),
 		compiler.WithMetadata(
 			metadataFromContext(c),
+		),
+		compiler.WithOption(
+			compiler.WithVolumeCacher(
+				c.String("volume-cache-base"),
+			),
+			c.Bool("volume-cache"),
+		),
+		compiler.WithOption(
+			compiler.WithS3Cacher(
+				c.String("aws-access-key-id"),
+				c.String("aws-secret-access-key"),
+				c.String("aws-region"),
+				c.String("aws-bucket"),
+			),
+			c.Bool("aws-cache"),
 		),
 	).Compile(conf)
 

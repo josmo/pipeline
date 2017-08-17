@@ -59,6 +59,37 @@ func TestWithNetworks(t *testing.T) {
 	}
 }
 
+func TestWithResourceLimit(t *testing.T) {
+	compiler := New(
+		WithResourceLimit(
+			1,
+			2,
+			3,
+			4,
+			5,
+			"0,2-5",
+		),
+	)
+	if compiler.reslimit.MemSwapLimit != 1 {
+		t.Errorf("TestWithResourceLimit must set MemSwapLimit from parameters")
+	}
+	if compiler.reslimit.MemLimit != 2 {
+		t.Errorf("TestWithResourceLimit must set MemLimit from parameters")
+	}
+	if compiler.reslimit.ShmSize != 3 {
+		t.Errorf("TestWithResourceLimit must set ShmSize from parameters")
+	}
+	if compiler.reslimit.CPUQuota != 4 {
+		t.Errorf("TestWithResourceLimit must set CPUQuota from parameters")
+	}
+	if compiler.reslimit.CPUShares != 5 {
+		t.Errorf("TestWithResourceLimit must set CPUShares from parameters")
+	}
+	if compiler.reslimit.CPUSet != "0,2-5" {
+		t.Errorf("TestWithResourceLimit must set CPUSet from parameters")
+	}
+}
+
 func TestWithPrefix(t *testing.T) {
 	if New(WithPrefix("drone_")).prefix != "drone_" {
 		t.Errorf("WithPrefix must set the prefix")
@@ -191,5 +222,40 @@ func TestGetenv(t *testing.T) {
 	}
 	if getenv("x_test_baz") != "" {
 		t.Errorf("Expect x_test_bar=bar is empty")
+	}
+}
+
+func TestWithVolumeCacher(t *testing.T) {
+	compiler := New(
+		WithVolumeCacher("/cache"),
+	)
+	cacher, ok := compiler.cacher.(*volumeCacher)
+	if !ok {
+		t.Errorf("Expected volume cacher configured")
+	}
+	if got, want := cacher.base, "/cache"; got != want {
+		t.Errorf("Expected volume cacher with base %s, got %s", want, got)
+	}
+}
+
+func TestWithS3Cacher(t *testing.T) {
+	compiler := New(
+		WithS3Cacher("some-access-key", "some-secret-key", "some-region", "some-bucket"),
+	)
+	cacher, ok := compiler.cacher.(*s3Cacher)
+	if !ok {
+		t.Errorf("Expected s3 cacher configured")
+	}
+	if got, want := cacher.bucket, "some-bucket"; got != want {
+		t.Errorf("Expected s3 cacher with bucket %s, got %s", want, got)
+	}
+	if got, want := cacher.access, "some-access-key"; got != want {
+		t.Errorf("Expected s3 cacher with access key %s, got %s", want, got)
+	}
+	if got, want := cacher.region, "some-region"; got != want {
+		t.Errorf("Expected s3 cacher with region %s, got %s", want, got)
+	}
+	if got, want := cacher.secret, "some-secret-key"; got != want {
+		t.Errorf("Expected s3 cacher with secret key %s, got %s", want, got)
 	}
 }
