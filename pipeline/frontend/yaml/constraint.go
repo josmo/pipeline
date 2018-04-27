@@ -10,6 +10,7 @@ import (
 type (
 	// Constraints defines a set of runtime constraints.
 	Constraints struct {
+		Ref         Constraint
 		Repo        Constraint
 		Instance    Constraint
 		Platform    Constraint
@@ -42,6 +43,8 @@ func (c *Constraints) Match(metadata frontend.Metadata) bool {
 		c.Event.Match(metadata.Curr.Event) &&
 		c.Branch.Match(metadata.Curr.Commit.Branch) &&
 		c.Repo.Match(metadata.Repo.Name) &&
+		c.Ref.Match(metadata.Curr.Commit.Ref) &&
+		c.Instance.Match(metadata.Sys.Host) &&
 		c.Matrix.Match(metadata.Job.Matrix) &&
 		c.UserAgent.Match(metadata.Sys.UserAgent)
 }

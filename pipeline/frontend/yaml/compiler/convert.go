@@ -20,6 +20,7 @@ func (c *Compiler) createProcess(name string, container *yaml.Container, section
 		command      = container.Command
 		image        = expandImage(container.Image)
 		network_mode = container.NetworkMode
+		ipc_mode     = container.IpcMode
 		// network    = container.Network
 	)
 
@@ -75,11 +76,20 @@ func (c *Compiler) createProcess(name string, container *yaml.Container, section
 	}
 
 	if len(container.Commands) != 0 {
-		entrypoint = []string{"/bin/sh", "-c"}
-		command = []string{"echo $CI_SCRIPT | base64 -d | /bin/sh -e"}
-		environment["CI_SCRIPT"] = generateScriptPosix(container.Commands)
-		environment["HOME"] = "/root"
-		environment["SHELL"] = "/bin/sh"
+		if c.metadata.Sys.Arch == "windows/amd64" {
+			// TODO provide windows implementation
+			entrypoint = []string{"/bin/sh", "-c"}
+			command = []string{"echo $CI_SCRIPT | base64 -d | /bin/sh -e"}
+			environment["CI_SCRIPT"] = generateScriptWindows(container.Commands)
+			environment["HOME"] = "/root"
+			environment["SHELL"] = "/bin/sh"
+		} else {
+			entrypoint = []string{"/bin/sh", "-c"}
+			command = []string{"echo $CI_SCRIPT | base64 -d | /bin/sh -e"}
+			environment["CI_SCRIPT"] = generateScriptPosix(container.Commands)
+			environment["HOME"] = "/root"
+			environment["SHELL"] = "/bin/sh"
+		}
 	}
 
 	if matchImage(container.Image, c.escalated...) {
@@ -148,6 +158,7 @@ func (c *Compiler) createProcess(name string, container *yaml.Container, section
 		Command:      command,
 		ExtraHosts:   container.ExtraHosts,
 		Volumes:      volumes,
+		Tmpfs:        container.Tmpfs,
 		Devices:      container.Devices,
 		Networks:     networks,
 		DNS:          container.DNS,
@@ -155,6 +166,7 @@ func (c *Compiler) createProcess(name string, container *yaml.Container, section
 		MemSwapLimit: memSwapLimit,
 		MemLimit:     memLimit,
 		ShmSize:      shmSize,
+		Sysctls:      container.Sysctls,
 		CPUQuota:     cpuQuota,
 		CPUShares:    cpuShares,
 		CPUSet:       cpuSet,
@@ -164,5 +176,6 @@ func (c *Compiler) createProcess(name string, container *yaml.Container, section
 			len(container.Constraints.Status.Exclude) != 0) &&
 			container.Constraints.Status.Match("failure"),
 		NetworkMode: network_mode,
+		IpcMode:     ipc_mode,
 	}
 }
